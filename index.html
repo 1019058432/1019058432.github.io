@@ -9,6 +9,7 @@
 <body>
   Hello World!
   <script>
+    const PWA_CACHE_TAG = 'mu-test-cache-v1'
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js', {
