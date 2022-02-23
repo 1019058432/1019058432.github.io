@@ -16,7 +16,7 @@ this.addEventListener('install', event => {
 })
 // 监听网络请求事件
 this.addEventListener('fetch', event => {
-  event.respondWidth(
+  event.respondWith(
     caches
     .match(event.request)
     .then( response => {
