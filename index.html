@@ -1,56 +1,172 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-
-	<title>wangEditor mobile test</title>
-
-    <link href="https://unpkg.com/@wangeditor/editor@latest/dist/css/style.css" rel="stylesheet">
-    <style>
-      #editor—wrapper {
-        border: 1px solid #ccc;
-        z-index: 100; /* 按需定义 */
-      }
-      #toolbar-container { border-bottom: 1px solid #ccc; }
-      #editor-container { height: 500px; }
-    </style>
-</head>
-<body>
-	<p>wangEditor-mobile test</p>
-    <div id="editor—wrapper">
-        <div id="toolbar-container"><!-- 工具栏 --></div>
-        <div id="editor-container"><!-- 编辑器 --></div>
-    </div>
-
-	<script src="https://unpkg.com/@wangeditor/editor@latest/dist/index.js"></script>
-<script>
-const { createEditor, createToolbar } = window.wangEditor
-
-const editorConfig = {
-    placeholder: 'Type here...',
-    onChange(editor) {
-      const html = editor.getHtml()
-      console.log('editor content', html)
-      // 也可以同步到 <textarea>
-    }
-}
-
-const editor = createEditor({
-    selector: '#editor-container',
-    html: '<p><br></p>',
-    config: editorConfig,
-    mode: 'default', // or 'simple'
-})
-
-const toolbarConfig = {}
-
-const toolbar = createToolbar({
-    editor,
-    selector: '#toolbar-container',
-    config: toolbarConfig,
-    mode: 'default', // or 'simple'
-})
-</script>
-</body>
+<!doctype html>  
+<html>  
+<head>  
+<title>selection</title>  
+</head>  
+<body>  
+<input type="text" name="txt" id="txt" />  
+<input type="button" value="移动光标" οnclick="setCaretPosition(2)" />  
+  
+<p id="p1" contenteditable="true"><b>Hello</b> World</p>  
+<input type="button" value="insertSpanToFirst" οnclick="insertSpan()" />    
+<input type="button" value="insertHTMLByJS" οnclick="insertHTMLByJS()" />    
+<input type="button" value="insertHTMLByCommand" οnclick="insertHTMLByCommand()" />    
+<input type="button" value="insertImgByCommand" οnclick="insertImgByCommand()" />    
+  
+<script>  
+var p1element = document.getElementById('p1');  
+var cacheRange = null;  
+/* 优化编辑框点击后有时无法成为编辑状态的问题 */  
+var editor = document.getElementById('editor_id'), editorTimer = null;  
+editor.addEventListener('click', function(){  
+	editorTimer = setTimeout(function(){  
+	    console.log('set focus');  
+	    var sel,range;  
+	    if (window.getSelection && document.createRange) {  
+	      range = document.createRange();  
+	      range.selectNodeContents(editor);  
+	      range.collapse(true);  
+	      range.setEnd(editor, editor.childNodes.length);  
+	      range.setStart(editor, editor.childNodes.length);  
+	      sel = window.getSelection();  
+	      sel.removeAllRanges();  
+	      sel.addRange(range);  
+	    } else if (document.body.createTextRange) {  
+	      range = document.body.createTextRange();  
+	      range.moveToElementText(editor);  
+	      range.collapse(true);  
+	      range.select();  
+	    }               
+	    editor.focus();  
+	},300);  
+}, false);  
+editor.addEventListener('focus', function(){  
+	clearTimeout(editorTimer);  
+}, false); 
+p1element.onkeydown = function(e){  
+    //alert(e.keyCode);  
+};  
+p1element.onblur = function(){  
+  
+    console.log('blur');  
+    var sel = window.getSelection();  
+    if(sel.rangeCount){  
+        cacheRange = sel.getRangeAt(0);  
+        cacheRange.anchorNode = sel.anchorNode;  
+        cacheRange.anchorOffset = sel.anchorOffset;  
+        cacheRange.focusNode = sel.focusNode;  
+        cacheRange.focusrOffset = sel.focusOffset;  
+        console.log(sel.anchorNode);  
+        console.log(sel.anchorOffset);      
+    }  
+      
+};  
+function setCaretPosition(pos){     
+    var ctrl = document.getElementById('txt');  
+    //设置光标位置函数      
+    if(ctrl.setSelectionRange) {     
+        ctrl.select();  
+        ctrl.setSelectionRange(pos,pos);      
+    } else if (ctrl.createTextRange){      
+        var range = ctrl.createTextRange();      
+        range.collapse(true);      
+        range.moveEnd('character', pos);      
+        range.moveStart('character', pos);      
+        range.select();      
+    }      
+}    
+function insertSpan(){  
+    var oP1 = document.getElementById("p1");      
+    var oHello = oP1.firstChild;      
+    var oRange = document.createRange();      
+    var oSpan = document.createElement("span");      
+    oSpan.style.color = "red";      
+    oSpan.appendChild(document.createTextNode("Inserted text"));      
+           
+    oRange.setStart(oHello, 0);      
+    oRange.setEnd(oHello, 0);      
+    oRange.insertNode(oSpan);  
+  
+    var ctrl = document.getElementById('p1');  
+    //设置光标位置函数      
+    if(ctrl.setSelectionRange) {     
+        ctrl.select();  
+        ctrl.setSelectionRange(pos,pos);      
+    } else if (ctrl.createTextRange){      
+        var range = ctrl.createTextRange();      
+        range.collapse(true);      
+        range.moveEnd('character', pos);      
+        range.moveStart('character', pos);      
+        range.select();      
+    }   
+}  
+function insertHTMLByJS(){    
+    if(cacheRange === null) return;  
+      
+    var appendEl = document.createElement("span");  
+    appendEl.textContent = "this is span";  
+    appendEl.style.color = "blue";  
+  
+    // var appendEl = document.createElement("span");      
+    // appendEl.style.width = "100px";      
+    // appendEl.style.height = "60px";      
+    // appendEl.style.display = "inline-block";  
+    // appendEl.style.background = "left top no-repeat url(https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/logo_top_ca79a146.png)";  
+    // appendEl.innerHTML = "&nbsp;";  
+      
+    // 方式1,通过新创建的选定区来插入  
+    // var oRange = document.createRange();           
+    // console.log(cacheRange);      
+    // oRange.setStart(cacheRange.anchorNode, cacheRange.anchorOffset);      
+    // oRange.insertNode(appendEl);  
+      
+  
+    // 方式2,通过缓存之前的选定区来插入    
+    var sel = window.getSelection();  
+    sel.removeAllRanges();  
+    cacheRange.insertNode(appendEl);  
+  
+    if( ! sel.isCollapsed ){  
+        sel.collapseToEnd();  
+    }  
+    sel.addRange(cacheRange);  
+    // 移除光标显示  
+    document.getElementById('p1').blur();  
+    sel.removeAllRanges();              
+    cacheRange = null;  
+      
+}  
+function insertHTMLByCommand(){    
+    if(cacheRange === null) return;  
+      
+    // 方式2,通过缓存之前的选定区来插入    
+    var sel = window.getSelection();  
+    sel.removeAllRanges();  
+    sel.addRange(cacheRange);  
+    document.execCommand("insertHTML", "false", "<span style='color:#ff3300'><img src='https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/logo_top_ca79a146.png' width=50 height=50 /></span>");  
+    // 移除光标显示  
+    document.getElementById('p1').blur();  
+    sel.removeAllRanges();              
+    cacheRange = null;  
+      
+}  
+function insertImgByCommand(){  
+    if(cacheRange === null) return;  
+      
+    // 方式2,通过缓存之前的选定区来插入    
+    var sel = window.getSelection();  
+    if( ! sel.isCollapsed ){  
+        sel.collapseToEnd();  
+    }  
+    sel.addRange(cacheRange);  
+    document.execCommand("insertImage", "false", "https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/logo_top_ca79a146.png");  
+    // 移除光标显示  
+    document.getElementById('p1').blur();  
+    sel.removeAllRanges();              
+    cacheRange = null;  
+      
+}  
+  
+</script>  
+</body>  
 </html>
