@@ -17,7 +17,7 @@
 var p1element = document.getElementById('p1');  
 var cacheRange = null;  
 /* 优化编辑框点击后有时无法成为编辑状态的问题 */  
-var editor = document.getElementById('editor_id'), editorTimer = null;  
+var editor = p1element, editorTimer = null;  
 editor.addEventListener('click', function(){  
 	editorTimer = setTimeout(function(){  
 	    console.log('set focus');  
